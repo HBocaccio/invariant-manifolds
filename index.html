@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Variedades invariantes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  background: #EDF1F4;
+  color: #1B2430;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.wrap { max-width: 940px; margin: 0 auto; padding: 22px 16px 48px; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #566173; letter-spacing: 0.02em; margin: 0 0 4px; }
+h1 { font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 27px; line-height: 1.15; margin: 0 0 10px; color: #14202B; }
+.eq { font-family: 'JetBrains Mono', monospace; font-size: 15px; background: #fff; border: 1px solid #D4DBE2; border-radius: 6px; padding: 8px 12px; display: inline-block; color: #2F3B4A; }
+.intro { font-size: 13.5px; color: #4A5568; line-height: 1.55; margin: 12px 0 0; max-width: 72ch; }
+.card { background: #fff; border: 1px solid #D4DBE2; border-radius: 12px; padding: 16px; margin-top: 16px; }
+.cardTitle { font-family: 'Source Serif 4', serif; font-size: 17px; font-weight: 600; margin: 0 0 4px; color: #14202B; }
+.cardSub { font-size: 12.5px; color: #6B7686; margin: 0 0 10px; line-height: 1.5; max-width: 80ch; }
+.row { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.row label, .lbl { font-family: 'JetBrains Mono', monospace; font-size: 13px; width: 74px; flex-shrink: 0; color: #2F3B4A; }
+input[type="range"] { flex: 1; accent-color: #C98A2C; min-width: 0; }
+.readout { font-family: 'JetBrains Mono', monospace; font-size: 13px; width: 58px; text-align: right; color: #14202B; flex-shrink: 0; }
+.status { font-family: 'JetBrains Mono', monospace; font-size: 13px; background: #F5F1E8; border: 1px solid #E7DCC2; border-radius: 8px; padding: 9px 11px; margin-top: 10px; color: #5A4A22; line-height: 1.6; white-space: pre-wrap; overflow-x: auto; }
+.hint { font-size: 12.5px; color: #6B7686; line-height: 1.5; margin: 8px 0 0; }
+svg { width: 100%; height: auto; display: block; }
+.btnRow { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+button.action { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; background: #14202B; color: #F2F5F7; border: none; border-radius: 7px; padding: 9px 13px; cursor: pointer; }
+button.action.secondary { background: #fff; color: #14202B; border: 1px solid #D4DBE2; }
+button.action:hover { opacity: 0.88; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: #4A5568; }
+.legend span.sw { display:inline-block; width:14px; height:3px; margin-right:5px; vertical-align:middle; }
+.legend span.dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+footer { margin-top: 22px; font-size: 11.5px; color: #8994A3; font-family: 'JetBrains Mono', monospace; }
+
+/* agregados, en el mismo lenguaje visual */
+.split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 760px) { .split, .pair { grid-template-columns: 1fr; } }
+.plotLbl { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #566173; margin: 0 0 4px; }
+select, input[type="text"], input[type="number"] {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #14202B;
+  border: 1px solid #D4DBE2; border-radius: 6px; padding: 6px 8px; background: #fff; min-width: 0;
+}
+input[type="text"] { flex: 1; }
+input[type="number"] { width: 84px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; }
+.grid4 div { display: flex; flex-direction: column; gap: 3px; }
+.grid4 span, .mini { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B7686; }
+.grid4 input { width: 100%; }
+.seg { display: inline-flex; border: 1px solid #D4DBE2; border-radius: 7px; overflow: hidden; }
+.seg button { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; border: none; background: #fff; color: #14202B; padding: 8px 11px; cursor: pointer; }
+.seg button + button { border-left: 1px solid #D4DBE2; }
+.seg button.on { background: #14202B; color: #F2F5F7; }
+.checks { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; font-size: 12.5px; color: #2F3B4A; }
+.checks label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.checks input { accent-color: #C98A2C; }
+.sub { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8994A3; text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 4px; }
+.sub:first-child { margin-top: 0; }
+.err { color: #A33A2E; font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 6px; min-height: 1em; }
+details { margin-top: 10px; font-size: 12.5px; color: #4A5568; line-height: 1.55; }
+details summary { cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #2F3B4A; }
+details p { margin: 6px 0 0; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+#phaseSvg { cursor: crosshair; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Dinámica no lineal · Sistemas 2D · Variedades invariantes</p>
+  <h1>Variedades invariantes de un punto fijo</h1>
+  <span class="eq" id="eqHeader">ẋ = x + y² ,  ẏ = −y</span>
+  <p class="intro">Primero linealizamos: punto fijo, Jacobiano, autovalores y autovectores. Los autovectores
+  definen las variedades locales <em>lineales</em> (subespacios estable e inestable). Después integramos el sistema
+  no lineal: si largamos una condición inicial muy cerca del punto fijo sobre un autovector y la integramos
+  hacia adelante (inestable) o hacia atrás (estable), obtenemos las variedades globales, que son tangentes a las
+  lineales en el punto fijo pero se curvan lejos de él. Al final, para el sistema del Ejercicio 8, aproximamos la
+  variedad estable con polinomios de grado creciente.</p>
+
+  <!-- ============ 1. Sistema y análisis lineal ============ -->
+  <div class="card">
+    <p class="cardTitle">1 · Sistema y análisis lineal</p>
+    <p class="cardSub">Elegí un sistema (o escribí uno propio con sintaxis tipo Python/JS: <span class="mono">x + y^2</span>,
+      <span class="mono">exp(-y)</span>, <span class="mono">sin(x)</span>…). Los puntos fijos se buscan con Newton desde una grilla
+      de condiciones iniciales dentro de la ventana, y el Jacobiano se aproxima por diferencias finitas — lo mismo que hacíamos con
+      <span class="mono">fsolve</span> y <span class="mono">approx_derivative</span> en el colab.</p>
+
+    <div class="row">
+      <label>sistema</label>
+      <select id="preset" style="flex:1">
+        <option value="ej2">Colab · Ej. 2–3: ẋ = x + y², ẏ = −y</option>
+        <option value="ej8">Guía · Ej. 8: ẋ = x + e^(−y), ẏ = −y</option>
+        <option value="pend">Colab · Ej. 4: péndulo ẋ = y, ẏ = −sin x</option>
+        <option value="custom">Personalizado</option>
+      </select>
+    </div>
+    <div class="row"><label>ẋ = f</label><input type="text" id="fExpr" spellcheck="false" /></div>
+    <div class="row"><label>ẏ = g</label><input type="text" id="gExpr" spellcheck="false" /></div>
+    <div class="grid4">
+      <div><span>x mín</span><input type="number" id="xmin" step="0.5" /></div>
+      <div><span>x máx</span><input type="number" id="xmax" step="0.5" /></div>
+      <div><span>y mín</span><input type="number" id="ymin" step="0.5" /></div>
+      <div><span>y máx</span><input type="number" id="ymax" step="0.5" /></div>
+    </div>
+    <div class="btnRow">
+      <button class="action" id="applyBtn">Aplicar sistema y ventana</button>
+    </div>
+    <div class="err" id="sysErr"></div>
+
+    <div class="row" style="margin-top:4px">
+      <label>punto fijo</label>
+      <select id="fpSelect" style="flex:1"></select>
+    </div>
+    <div class="status" id="linStatus"></div>
+  </div>
+
+  <!-- ============ 2. Retrato de fases ============ -->
+  <div class="card">
+    <p class="cardTitle">2 · Retrato de fases, variedades y trayectorias</p>
+    <p class="cardSub">El flujo de fondo es un <span class="mono">streamplot</span>. En naranja y verde azulado, las variedades
+      locales lineales (segmentos a lo largo de los autovectores). En negro, las variedades globales integradas numéricamente.
+      Hacé clic en el retrato para largar una trayectoria desde ese punto, o escribí la condición inicial a mano.</p>
+
+    <div class="split">
+      <div>
+        <svg id="phaseSvg" viewBox="0 0 420 420"></svg>
+        <div class="legend">
+          <span><span class="dot" style="background:#A33A2E"></span>punto fijo</span>
+          <span><span class="sw" style="background:#C98A2C"></span>inestable (lineal)</span>
+          <span><span class="sw" style="background:#2F6F6B"></span>estable (lineal)</span>
+          <span><span class="sw" style="background:#14202B"></span>variedad global</span>
+          <span><span class="sw" style="background:repeating-linear-gradient(90deg,#3A6EA5 0 4px,transparent 4px 7px)"></span>trayectoria integrada hacia atrás</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="sub">Qué mostrar</p>
+        <div class="checks">
+          <label><input type="checkbox" id="chkField" checked /> campo vector (streamplot)</label>
+          <label><input type="checkbox" id="chkLocal" checked /> variedades locales lineales</label>
+          <label><input type="checkbox" id="chkGlobal" /> variedades globales (integradas)</label>
+        </div>
+        <div class="row"><label>largo</label>
+          <input type="range" id="Lslider" min="0.05" max="2" step="0.05" value="0.5" />
+          <span class="readout" id="Lread">0.50</span></div>
+        <div class="row"><label>ε</label>
+          <select id="epsSel" style="flex:1">
+            <option value="1e-1">1e-1</option>
+            <option value="1e-2">1e-2</option>
+            <option value="1e-3" selected>1e-3</option>
+            <option value="1e-6">1e-6</option>
+          </select></div>
+        <p class="hint" style="margin-top:0">ε es la distancia al punto fijo, sobre el autovector, desde donde se larga la
+          integración de la variedad global (T = ±20, como en el colab). Ej. 3.1: probá distintos ε.</p>
+
+        <p class="sub">Nueva trayectoria</p>
+        <div class="grid4" style="grid-template-columns: repeat(2, minmax(0,1fr));">
+          <div><span>x₀</span><input type="number" id="x0in" value="0" step="0.1" /></div>
+          <div><span>y₀</span><input type="number" id="y0in" value="0.01" step="0.1" /></div>
+          <div><span>tiempo T</span><input type="number" id="Tin" value="5" step="1" min="0.1" /></div>
+          <div><span>paso dt</span><input type="number" id="dtin" value="0.01" step="0.005" min="0.0005" /></div>
+        </div>
+        <div class="row" style="flex-wrap:wrap">
+          <div class="seg" id="dirSeg">
+            <button data-v="1" class="on">→ hacia adelante</button>
+            <button data-v="-1">← hacia atrás</button>
+          </div>
+          <div class="seg" id="styleSeg">
+            <button data-v="line" class="on">línea</button>
+            <button data-v="dots">puntos</button>
+          </div>
+        </div>
+        <div class="btnRow">
+          <button class="action" id="addBtn">Agregar trayectoria</button>
+          <button class="action secondary" id="clearBtn">Borrar trayectorias</button>
+        </div>
+        <div class="btnRow">
+          <button class="action secondary" id="fitBtn">Ajustar ejes a trayectorias</button>
+          <button class="action secondary" id="resetViewBtn">Restaurar ejes</button>
+        </div>
+        <div class="checks" style="margin-top:10px">
+          <label><input type="checkbox" id="chkClick" checked /> clic en el retrato agrega trayectoria</label>
+        </div>
+        <div class="status" id="trajStatus">Sin trayectorias.</div>
+      </div>
+    </div>
+    <p class="hint">Ej. 3.2: con el sistema del Ej. 2, largá (x₀, y₀) = (0, 0.01) con T = 5 y dt = 0.01, en modo «puntos».
+      Compará los ejes fijos en [−2, 2] con «Ajustar ejes a trayectorias», y después alargá T. ¿Por qué la trayectoria parece
+      pegarse a la variedad inestable?</p>
+  </div>
+
+  <!-- ============ 3. Aproximación polinomial ============ -->
+  <div class="card">
+    <p class="cardTitle">3 · Aproximación en serie de la variedad estable (Guía · Ej. 8)</p>
+    <p class="cardSub">Para ẋ = x + e^(−y), ẏ = −y, la silla está en (−1, 0). Con u = x + 1 proponemos
+      <span class="mono">y = a₁u + a₂u² + … + a<sub>N</sub>u<sup>N</sup></span>. Igualando las dos expresiones de dy/dx
+      (derivando el polinomio, y como ẏ/ẋ) término a término, cada coeficiente queda determinado por los anteriores.
+      A la izquierda, un zoom cerca del punto fijo; a la derecha, una ventana amplia. En negro, la variedad estable numérica
+      (integrando hacia atrás desde (−1, 0) ± ε·v<sub>s</sub>).</p>
+
+    <div class="row"><label>grado N</label>
+      <input type="range" id="Nslider" min="1" max="15" step="1" value="2" />
+      <span class="readout" id="Nread">2</span></div>
+    <div class="row"><label>zoom |u|≤</label>
+      <input type="range" id="Wslider" min="0.05" max="0.8" step="0.05" value="0.3" />
+      <span class="readout" id="Wread">0.30</span></div>
+
+    <div class="pair">
+      <div><p class="plotLbl">cerca del punto fijo</p><svg id="nearSvg" viewBox="0 0 360 320"></svg></div>
+      <div><p class="plotLbl">ventana amplia</p><svg id="wideSvg" viewBox="0 0 360 320"></svg></div>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:#14202B"></span>variedad estable numérica</span>
+      <span><span class="sw" style="background:#C98A2C"></span>polinomio de grado N</span>
+      <span><span class="sw" style="background:#E3C79A"></span>grados menores</span>
+      <span><span class="sw" style="background:#2F6F6B"></span>variedad inestable (eje x)</span>
+    </div>
+    <div class="checks" style="flex-direction:row; flex-wrap:wrap; gap:16px">
+      <label><input type="checkbox" id="chkLower" checked /> mostrar grados menores</label>
+      <label><input type="checkbox" id="chkRadius" /> marcar |u| = 1</label>
+    </div>
+    <div class="status" id="polyStatus"></div>
+    <p class="hint">Mové N: en el zoom las curvas se vuelven indistinguibles de la numérica enseguida (con N = 1 ya es la
+      variedad lineal, la recta del autovector (1, 2)). En la ventana amplia, en cambio, todo polinomio termina separándose.</p>
+    <details>
+      <summary>Para pensar después: ¿por qué no converge lejos?</summary>
+      <p>Los coeficientes calculados tienden a |a<sub>n</sub>| ≈ 1, así que el radio de convergencia de la serie es ≈ 1 en u.
+      Para ver por qué, escribí la variedad como x(y): dx/dy = ẋ/ẏ = −(x + e<sup>−y</sup>)/y es una EDO <em>lineal</em>,
+      con (xy)′ = −e<sup>−y</sup>. La solución regular en y = 0 que pasa por (−1, 0) es
+      <span class="mono">x = (e<sup>−y</sup> − 1)/y</span>. Cuando y → ∞, x → 0⁻: la rama superior tiene una asíntota vertical en
+      u = 1, algo que ningún polinomio en u puede reproducir. Activá «marcar |u| = 1» y mirá la ventana amplia.</p>
+    </details>
+  </div>
+
+  <footer>Cátedra Mindlin · Dinámica no lineal</footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+
+/* ---------- paleta ---------- */
+const C = {
+  ink: "#14202B", axis: "#9AA6B4", grid: "#EEF1F4", tick: "#566173",
+  unstable: "#C98A2C", stable: "#2F6F6B", fp: "#A33A2E", stream: "#B7C1CC",
+  lower: "#E3C79A"
+};
+const TRAJ = ["#3A6EA5", "#B5483B", "#5F8A2E", "#7D5BA6", "#5B6B7D", "#A0602A"];
+
+/* ---------- utilidades de gráfico ---------- */
+function niceTicks(a, b, n = 5) {
+  const span = b - a; if (!(span > 0)) return [a];
+  let step = Math.pow(10, Math.floor(Math.log10(span / n)));
+  const r = span / n / step;
+  if (r >= 7.5) step *= 10; else if (r >= 3.5) step *= 5; else if (r >= 1.5) step *= 2;
+  const out = [];
+  for (let v = Math.ceil(a / step - 1e-9) * step; v <= b + 1e-9 * span; v += step) out.push(+v.toFixed(10));
+  return out;
+}
+const fmtTick = v => { const s = String(+v.toPrecision(6)); return s === "-0" ? "0" : s.replace("-", "−"); };
+
+function makeFrame(W, H, view, m = { l: 46, r: 12, t: 10, b: 36 }) {
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const sx = x => m.l + (x - view.xmin) / (view.xmax - view.xmin) * pw;
+  const sy = y => m.t + (view.ymax - y) / (view.ymax - view.ymin) * ph;
+  const ix = px => view.xmin + (px - m.l) / pw * (view.xmax - view.xmin);
+  const iy = py => view.ymax - (py - m.t) / ph * (view.ymax - view.ymin);
+  return { W, H, m, pw, ph, sx, sy, ix, iy, view };
+}
+function axesSVG(F, clipId, xl = "x", yl = "y") {
+  const { m, pw, ph, sx, sy, view, W, H } = F;
+  let s = `<defs><clipPath id="${clipId}"><rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  s += `<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="#fff"/>`;
+  const xt = niceTicks(view.xmin, view.xmax, 6), yt = niceTicks(view.ymin, view.ymax, 6);
+  for (const v of xt) s += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${m.t}" y2="${m.t + ph}" stroke="${C.grid}"/>`;
+  for (const v of yt) s += `<line y1="${sy(v)}" y2="${sy(v)}" x1="${m.l}" x2="${m.l + pw}" stroke="${C.grid}"/>`;
+  const font = `font-family="JetBrains Mono, monospace" font-size="10.5" fill="${C.tick}"`;
+  for (const v of xt) s += `<line x1="${sx(v)}" x2="${sx(v)}" y1="${m.t + ph}" y2="${m.t + ph + 4}" stroke="${C.axis}"/><text x="${sx(v)}" y="${m.t + ph + 15}" text-anchor="middle" ${font}>${fmtTick(v)}</text>`;
+  for (const v of yt) s += `<line x1="${m.l - 4}" x2="${m.l}" y1="${sy(v)}" y2="${sy(v)}" stroke="${C.axis}"/><text x="${m.l - 7}" y="${sy(v) + 3.5}" text-anchor="end" ${font}>${fmtTick(v)}</text>`;
+  const lf = `font-family="JetBrains Mono, monospace" font-size="12.5" fill="${C.ink}"`;
+  s += `<text x="${m.l + pw / 2}" y="${H - 5}" text-anchor="middle" ${lf}>${xl}</text>`;
+  s += `<text x="12" y="${m.t + ph / 2}" text-anchor="middle" ${lf} transform="rotate(-90 12 ${m.t + ph / 2})">${yl}</text>`;
+  return s;
+}
+function frameBorder(F) {
+  const { m, pw, ph } = F;
+  return `<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="none" stroke="${C.axis}"/>`;
+}
+const CAP = 1e5;
+const cp = v => Math.max(-CAP, Math.min(CAP, v));
+function pathFrom(F, pts) {
+  let d = "", pen = false;
+  for (const p of pts) {
+    if (!p || !isFinite(p[0]) || !isFinite(p[1])) { pen = false; continue; }
+    d += (pen ? "L" : "M") + cp(F.sx(p[0])).toFixed(2) + " " + cp(F.sy(p[1])).toFixed(2);
+    pen = true;
+  }
+  return d;
+}
+function arrowHead(x, y, ang, size, color) {
+  const a1 = ang + Math.PI * 0.85, a2 = ang - Math.PI * 0.85;
+  return `<path d="M${x + size * Math.cos(ang)} ${y + size * Math.sin(ang)} L${x + size * Math.cos(a1)} ${y + size * Math.sin(a1)} L${x + size * Math.cos(a2)} ${y + size * Math.sin(a2)} Z" fill="${color}"/>`;
+}
+
+/* ---------- sistema ---------- */
+const PRESETS = {
+  ej2:  { f: "x + y^2",      g: "-y",       view: { xmin: -2, xmax: 2, ymin: -2, ymax: 2 },   eq: "ẋ = x + y² ,  ẏ = −y" },
+  ej8:  { f: "x + exp(-y)",  g: "-y",       view: { xmin: -3, xmax: 1, ymin: -2, ymax: 2 },   eq: "ẋ = x + e^(−y) ,  ẏ = −y" },
+  pend: { f: "y",            g: "-sin(x)",  view: { xmin: -4, xmax: 4, ymin: -4, ymax: 4 },   eq: "ẋ = y ,  ẏ = −sin x" },
+};
+function compile(expr) {
+  const src = expr.replace(/\^/g, "**");
+  if (/[;{}\[\]`'"\\]|=>|\bnew\b|\bthis\b|\bwindow\b|\bdocument\b|\bfunction\b/.test(src)) throw new Error("expresión no permitida");
+  const fn = new Function("x", "y",
+    "const {sin,cos,tan,asin,acos,atan,sinh,cosh,tanh,exp,log,sqrt,abs,pow,sign}=Math; const pi=Math.PI, e=Math.E, ln=Math.log;" +
+    "return (" + src + ");");
+  const t = fn(0.3, -0.7);
+  if (typeof t !== "number") throw new Error("la expresión no devuelve un número");
+  return fn;
+}
+
+const S = {
+  f: null, g: null, view: null, homeView: null,
+  fps: [], fpIdx: 0, lin: null,
+  trajs: [], dir: 1, style: "line", colorIdx: 0,
+  fieldCache: null, fieldKey: ""
+};
+
+function F2(x, y) { return [S.f(x, y), S.g(x, y)]; }
+function jacobian(x, y) {
+  const h = 1e-6;
+  const fxp = F2(x + h, y), fxm = F2(x - h, y), fyp = F2(x, y + h), fym = F2(x, y - h);
+  return [[(fxp[0] - fxm[0]) / (2 * h), (fyp[0] - fym[0]) / (2 * h)],
+          [(fxp[1] - fxm[1]) / (2 * h), (fyp[1] - fym[1]) / (2 * h)]];
+}
+function findFixedPoints(view) {
+  const found = [];
+  const n = 14, sx = view.xmax - view.xmin, sy = view.ymax - view.ymin;
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
+    let x = view.xmin + sx * i / n, y = view.ymin + sy * j / n, ok = false;
+    for (let k = 0; k < 60; k++) {
+      const [f, g] = F2(x, y);
+      if (!isFinite(f) || !isFinite(g)) break;
+      if (Math.hypot(f, g) < 1e-12) { ok = true; break; }
+      const J = jacobian(x, y), det = J[0][0] * J[1][1] - J[0][1] * J[1][0];
+      if (!isFinite(det) || Math.abs(det) < 1e-14) break;
+      let dx = (J[1][1] * f - J[0][1] * g) / det, dy = (-J[1][0] * f + J[0][0] * g) / det;
+      const st = Math.hypot(dx, dy), maxSt = 0.5 * Math.max(sx, sy);
+      if (st > maxSt) { dx *= maxSt / st; dy *= maxSt / st; }
+      x -= dx; y -= dy;
+      if (st < 1e-13) { ok = Math.hypot(...F2(x, y)) < 1e-8; break; }
+    }
+    if (!ok) continue;
+    if (x < view.xmin - 0.05 * sx || x > view.xmax + 0.05 * sx || y < view.ymin - 0.05 * sy || y > view.ymax + 0.05 * sy) continue;
+    if (!found.some(p => Math.hypot(p[0] - x, p[1] - y) < 1e-5 * Math.max(1, sx))) found.push([x, y]);
+  }
+  found.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  return found.map(p => p.map(v => Math.abs(v) < 1e-10 ? 0 : v));
+}
+function eig2(J) {
+  const a = J[0][0], b = J[0][1], c = J[1][0], d = J[1][1];
+  const tr = a + d, det = a * d - b * c, disc = tr * tr / 4 - det;
+  const tol = 1e-9 * Math.max(1, Math.abs(tr), Math.abs(det));
+  if (disc < -tol) {
+    const w = Math.sqrt(-disc);
+    return { complex: true, re: tr / 2, im: w, tr, det, disc };
+  }
+  const r = Math.sqrt(Math.max(disc, 0));
+  const lams = [tr / 2 + r, tr / 2 - r];
+  const vecs = lams.map(l => {
+    let v;
+    if (Math.abs(b) > 1e-10) v = [b, l - a];
+    else if (Math.abs(c) > 1e-10) v = [l - d, c];
+    else v = Math.abs(l - a) < Math.abs(l - d) ? [1, 0] : [0, 1];
+    const n = Math.hypot(v[0], v[1]); v = [v[0] / n, v[1] / n];
+    if (v[0] < -1e-12 || (Math.abs(v[0]) < 1e-12 && v[1] < 0)) v = [-v[0], -v[1]];
+    return v;
+  });
+  return { complex: false, lams, vecs, tr, det, disc };
+}
+function classify(E) {
+  const eps = 1e-9;
+  if (E.complex) {
+    if (Math.abs(E.re) < eps) return "centro (lineal) — autovalores imaginarios puros; la linealización no decide";
+    return E.re < 0 ? "foco estable (espiral)" : "foco inestable (espiral)";
+  }
+  const [l1, l2] = E.lams;
+  if (Math.abs(l1) < eps || Math.abs(l2) < eps) return "no hiperbólico (autovalor nulo)";
+  if (l1 * l2 < 0) return "silla (det J < 0) — variedades estable e inestable 1D";
+  if (Math.abs(l1 - l2) < 1e-7) return l1 < 0 ? "nodo estable degenerado/estrella" : "nodo inestable degenerado/estrella";
+  return l1 < 0 ? "nodo estable" : "nodo inestable";
+}
+
+/* ---------- integración ---------- */
+function rk4Path(x0, y0, T, dt, sign, limit) {
+  const pts = [[x0, y0]];
+  let x = x0, y = y0;
+  const n = Math.min(Math.round(T / dt), 200000), h = sign * dt;
+  for (let i = 0; i < n; i++) {
+    const k1 = F2(x, y);
+    const k2 = F2(x + h / 2 * k1[0], y + h / 2 * k1[1]);
+    const k3 = F2(x + h / 2 * k2[0], y + h / 2 * k2[1]);
+    const k4 = F2(x + h * k3[0], y + h * k3[1]);
+    x += h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
+    y += h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+    if (!isFinite(x) || !isFinite(y)) break;
+    pts.push([x, y]);
+    if (limit && limit(x, y)) break;
+  }
+  return pts;
+}
+function farLimit(view, k) {
+  const cx = (view.xmin + view.xmax) / 2, cy = (view.ymin + view.ymax) / 2;
+  const sx = view.xmax - view.xmin, sy = view.ymax - view.ymin;
+  return (x, y) => Math.abs(x - cx) > k * sx || Math.abs(y - cy) > k * sy;
+}
+
+/* ---------- streamplot ---------- */
+function streamlines(view) {
+  const NG = 26, sx = view.xmax - view.xmin, sy = view.ymax - view.ymin;
+  const occ = new Int32Array(NG * NG).fill(-1);
+  const cell = (x, y) => {
+    const i = Math.floor((x - view.xmin) / sx * NG), j = Math.floor((y - view.ymin) / sy * NG);
+    return (i < 0 || j < 0 || i >= NG || j >= NG) ? -1 : j * NG + i;
+  };
+  const hs = 1 / 160;   // paso en unidades normalizadas de la ventana
+  const lines = [];
+  const dirAt = (x, y) => {
+    const [f, g] = F2(x, y);
+    const ux = f / sx, uy = g / sy, n = Math.hypot(ux, uy);
+    if (!isFinite(n) || n < 1e-12) return null;
+    return [ux / n * sx, uy / n * sy];
+  };
+  let id = 0;
+  const order = [];
+  for (let j = 0; j < NG; j++) for (let i = 0; i < NG; i++) order.push([i, j]);
+  for (const [i, j] of order) {
+    if (occ[j * NG + i] !== -1) continue;
+    const x0 = view.xmin + (i + 0.5) / NG * sx, y0 = view.ymin + (j + 0.5) / NG * sy;
+    const mine = new Set([j * NG + i]);
+    const trace = sgn => {
+      const out = []; let x = x0, y = y0, last = j * NG + i;
+      for (let k = 0; k < 900; k++) {
+        const d1 = dirAt(x, y); if (!d1) break;
+        const d2 = dirAt(x + 0.5 * sgn * hs * d1[0], y + 0.5 * sgn * hs * d1[1]); if (!d2) break;
+        x += sgn * hs * d2[0]; y += sgn * hs * d2[1];
+        const c = cell(x, y);
+        if (c < 0) break;
+        if (c !== last) {
+          if (occ[c] !== -1 || (mine.has(c) && k > 3)) break;
+          mine.add(c); last = c;
+        }
+        out.push([x, y]);
+      }
+      return out;
+    };
+    const fwd = trace(1), bwd = trace(-1);
+    const pts = bwd.reverse().concat([[x0, y0]], fwd);
+    for (const c of mine) occ[c] = id;
+    if (pts.length > 6) lines.push({ pts, mid: bwd.length + Math.floor(fwd.length / 2) });
+    id++;
+  }
+  return lines;
+}
+
+/* ---------- análisis lineal ---------- */
+const f4 = v => { const s = (Math.abs(v) < 5e-5 ? 0 : v).toFixed(4); return (s[0] === "-" ? "−" + s.slice(1) : " " + s); };
+function updateLinear() {
+  const sel = $("fpSelect");
+  sel.innerHTML = "";
+  if (!S.fps.length) {
+    sel.innerHTML = `<option>— ninguno en la ventana —</option>`;
+    S.lin = null;
+    $("linStatus").textContent = "No se encontraron puntos fijos dentro de la ventana. Probá ampliar los ejes.";
+    return;
+  }
+  S.fps.forEach((p, k) => {
+    const o = document.createElement("option");
+    o.value = k; o.textContent = `P${k + 1} = (${f4(p[0]).trim()}, ${f4(p[1]).trim()})`;
+    sel.appendChild(o);
+  });
+  S.fpIdx = Math.min(S.fpIdx, S.fps.length - 1); sel.value = S.fpIdx;
+  const p = S.fps[S.fpIdx], J = jacobian(p[0], p[1]), E = eig2(J);
+  S.lin = { p, J, E };
+  let t = `Punto fijo      (x*, y*) = (${f4(p[0]).trim()}, ${f4(p[1]).trim()})\n\n`;
+  t += `Jacobiano   J = ⎡${f4(J[0][0])}  ${f4(J[0][1])} ⎤\n`;
+  t += `                ⎣${f4(J[1][0])}  ${f4(J[1][1])} ⎦     tr J = ${f4(E.tr).trim()},  det J = ${f4(E.det).trim()}\n\n`;
+  if (E.complex) {
+    t += `λ₁,₂ = ${f4(E.re).trim()} ± ${f4(E.im).trim()} i     (autovectores complejos: no hay direcciones invariantes reales)\n`;
+  } else {
+    E.lams.forEach((l, k) => {
+      const tipo = Math.abs(l) < 1e-9 ? "neutro" : (l > 0 ? "inestable" : "estable");
+      t += `λ${k ? "₂" : "₁"} = ${f4(l)}   v${k ? "₂" : "₁"} = (${f4(E.vecs[k][0]).trim()}, ${f4(E.vecs[k][1]).trim()})   → ${tipo}\n`;
+    });
+  }
+  t += `\nClasificación: ${classify(E)}`;
+  $("linStatus").textContent = t;
+}
+
+/* ---------- dibujo del retrato ---------- */
+function drawPhase() {
+  const svg = $("phaseSvg");
+  const F = makeFrame(420, 420, S.view);
+  S.frame = F;
+  let s = axesSVG(F, "clipPhase");
+  s += `<g clip-path="url(#clipPhase)">`;
+
+  if ($("chkField").checked) {
+    const key = $("fExpr").value + "|" + $("gExpr").value + "|" + JSON.stringify(S.view);
+    if (key !== S.fieldKey) { S.fieldCache = streamlines(S.view); S.fieldKey = key; }
+    let d = "", arrows = "";
+    for (const L of S.fieldCache) {
+      d += pathFrom(F, L.pts);
+      const i = Math.max(1, Math.min(L.pts.length - 2, L.mid));
+      const a = L.pts[i - 1], b = L.pts[i + 1];
+      const ang = Math.atan2(F.sy(b[1]) - F.sy(a[1]), F.sx(b[0]) - F.sx(a[0]));
+      arrows += arrowHead(F.sx(L.pts[i][0]), F.sy(L.pts[i][1]), ang, 4.2, C.stream);
+    }
+    s += `<path d="${d}" fill="none" stroke="${C.stream}" stroke-width="1"/>` + arrows;
+  }
+
+  // variedades globales
+  const lin = S.lin;
+  if (lin && !lin.E.complex && $("chkGlobal").checked) {
+    const eps = parseFloat($("epsSel").value), lim = farLimit(S.view, 3);
+    lin.E.lams.forEach((l, k) => {
+      if (Math.abs(l) < 1e-9) return;
+      const v = lin.E.vecs[k];
+      for (const sg of [1, -1]) {
+        const pts = rk4Path(lin.p[0] + sg * eps * v[0], lin.p[1] + sg * eps * v[1], 20, 0.01, l > 0 ? 1 : -1, lim);
+        s += `<path d="${pathFrom(F, [lin.p].concat(pts))}" fill="none" stroke="${C.ink}" stroke-width="1.8" opacity="0.9"/>`;
+      }
+    });
+  }
+
+  // trayectorias
+  for (const T of S.trajs) {
+    if (T.style === "dots") {
+      const stride = Math.max(1, Math.ceil(T.pts.length / 3000));
+      let dots = "";
+      for (let i = 0; i < T.pts.length; i += stride) {
+        const X = F.sx(T.pts[i][0]), Y = F.sy(T.pts[i][1]);
+        if (X < -20 || X > 440 || Y < -20 || Y > 440) continue;
+        dots += `<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="1.5"/>`;
+      }
+      s += `<g fill="${T.color}" opacity="0.85">${dots}</g>`;
+    } else {
+      s += `<path d="${pathFrom(F, T.pts)}" fill="none" stroke="${T.color}" stroke-width="1.9" ${T.dir < 0 ? 'stroke-dasharray="5 3"' : ""}/>`;
+      // flecha en el sentido del flujo (tiempo creciente), en el primer tramo visible
+      const vis = T.pts.findIndex((p, i) => i > 2 && Math.hypot(F.sx(p[0]) - F.sx(T.pts[0][0]), F.sy(p[1]) - F.sy(T.pts[0][1])) > 40);
+      if (vis > 1) {
+        const a = T.pts[vis - 1], b = T.pts[vis];
+        let ang = Math.atan2(F.sy(b[1]) - F.sy(a[1]), F.sx(b[0]) - F.sx(a[0]));
+        if (T.dir < 0) ang += Math.PI;
+        s += arrowHead(F.sx(b[0]), F.sy(b[1]), ang, 5.5, T.color);
+      }
+    }
+    s += `<circle cx="${F.sx(T.x0)}" cy="${F.sy(T.y0)}" r="3.4" fill="#fff" stroke="${C.ink}" stroke-width="1.4"/>`;
+  }
+
+  // variedades locales lineales
+  if (lin && !lin.E.complex && $("chkLocal").checked) {
+    const L = parseFloat($("Lslider").value);
+    lin.E.lams.forEach((l, k) => {
+      const v = lin.E.vecs[k], col = l > 0 ? C.unstable : (l < 0 ? C.stable : C.axis);
+      s += `<line x1="${F.sx(lin.p[0] - L * v[0])}" y1="${F.sy(lin.p[1] - L * v[1])}" x2="${F.sx(lin.p[0] + L * v[0])}" y2="${F.sy(lin.p[1] + L * v[1])}" stroke="${col}" stroke-width="3.2" stroke-linecap="round" opacity="0.92"/>`;
+    });
+  }
+
+  // puntos fijos
+  S.fps.forEach((p, k) => {
+    s += `<circle cx="${F.sx(p[0])}" cy="${F.sy(p[1])}" r="${k === S.fpIdx ? 5.5 : 4}" fill="${C.fp}" stroke="#fff" stroke-width="1.3"/>`;
+  });
+  s += `</g>` + frameBorder(F);
+  svg.innerHTML = s;
+}
+
+/* ---------- trayectorias ---------- */
+function trajStatus() {
+  if (!S.trajs.length) { $("trajStatus").textContent = "Sin trayectorias."; return; }
+  const last = S.trajs.slice(-5).map(T => {
+    const e = T.pts[T.pts.length - 1];
+    return `(${+T.x0.toPrecision(4)}, ${+T.y0.toPrecision(4)}) ${T.dir > 0 ? "→" : "←"} T=${T.T}  final ≈ (${fmtNum(e[0])}, ${fmtNum(e[1])})${T.cut ? "  [cortada: diverge]" : ""}`;
+  });
+  $("trajStatus").textContent = `${S.trajs.length} trayectoria(s). Últimas:\n` + last.join("\n");
+}
+const fmtNum = v => Math.abs(v) >= 1e4 || (Math.abs(v) < 1e-3 && v !== 0) ? v.toExponential(2) : v.toFixed(3);
+function addTrajectory(x0, y0) {
+  const T = Math.max(0.01, parseFloat($("Tin").value) || 5);
+  const dt = Math.max(1e-4, parseFloat($("dtin").value) || 0.01);
+  const lim = (x, y) => Math.abs(x) > 1e8 || Math.abs(y) > 1e8;
+  const pts = rk4Path(x0, y0, T, dt, S.dir, lim);
+  const cut = pts.length < Math.round(T / dt) + 1;
+  S.trajs.push({ x0, y0, T, dt, dir: S.dir, style: S.style, pts, cut, color: TRAJ[S.colorIdx++ % TRAJ.length] });
+  drawPhase(); trajStatus();
+}
+
+/* ---------- aplicar sistema ---------- */
+function readView() {
+  const v = { xmin: +$("xmin").value, xmax: +$("xmax").value, ymin: +$("ymin").value, ymax: +$("ymax").value };
+  if (!(v.xmax > v.xmin && v.ymax > v.ymin)) throw new Error("revisá los límites de los ejes (mín < máx)");
+  return v;
+}
+function writeView(v) {
+  const r = x => +x.toPrecision(4);
+  $("xmin").value = r(v.xmin); $("xmax").value = r(v.xmax); $("ymin").value = r(v.ymin); $("ymax").value = r(v.ymax);
+}
+function applySystem(keepTrajs = false) {
+  $("sysErr").textContent = "";
+  try {
+    const f = compile($("fExpr").value), g = compile($("gExpr").value);
+    const view = readView();
+    const sysChanged = !S.f || $("fExpr").value !== S.fSrc || $("gExpr").value !== S.gSrc;
+    S.f = f; S.g = g; S.fSrc = $("fExpr").value; S.gSrc = $("gExpr").value;
+    S.view = view; S.homeView = { ...view };
+    if (sysChanged && !keepTrajs) { S.trajs = []; S.colorIdx = 0; S.fpIdx = 0; }
+    S.fps = findFixedPoints(view);
+    const p = $("preset").value;
+    $("eqHeader").textContent = PRESETS[p] ? PRESETS[p].eq : `ẋ = ${S.fSrc} ,  ẏ = ${S.gSrc}`;
+    updateLinear(); drawPhase(); trajStatus();
+  } catch (e) {
+    $("sysErr").textContent = "Error: " + e.message;
+  }
+}
+function loadPreset(key) {
+  const P = PRESETS[key]; if (!P) return;
+  $("fExpr").value = P.f; $("gExpr").value = P.g; writeView(P.view);
+  S.fps = []; applySystem();
+}
+
+/* ---------- eventos parte 1-2 ---------- */
+$("preset").addEventListener("change", e => { if (e.target.value !== "custom") loadPreset(e.target.value); });
+["fExpr", "gExpr"].forEach(id => $(id).addEventListener("input", () => { $("preset").value = "custom"; }));
+["fExpr", "gExpr", "xmin", "xmax", "ymin", "ymax"].forEach(id =>
+  $(id).addEventListener("keydown", e => { if (e.key === "Enter") applySystem(); }));
+$("applyBtn").addEventListener("click", () => applySystem());
+$("fpSelect").addEventListener("change", e => { S.fpIdx = +e.target.value; updateLinear(); drawPhase(); });
+["chkField", "chkLocal", "chkGlobal", "epsSel"].forEach(id => $(id).addEventListener("change", drawPhase));
+$("Lslider").addEventListener("input", e => { $("Lread").textContent = (+e.target.value).toFixed(2); drawPhase(); });
+
+function segHandler(segId, cb) {
+  const seg = $(segId);
+  seg.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    cb(b.dataset.v);
+  });
+}
+segHandler("dirSeg", v => { S.dir = +v; });
+segHandler("styleSeg", v => { S.style = v; });
+
+$("addBtn").addEventListener("click", () => {
+  const x0 = parseFloat($("x0in").value), y0 = parseFloat($("y0in").value);
+  if (!isFinite(x0) || !isFinite(y0)) return;
+  addTrajectory(x0, y0);
+});
+$("clearBtn").addEventListener("click", () => { S.trajs = []; S.colorIdx = 0; drawPhase(); trajStatus(); });
+$("fitBtn").addEventListener("click", () => {
+  if (!S.trajs.length) return;
+  let xa = Infinity, xb = -Infinity, ya = Infinity, yb = -Infinity;
+  const pts = S.trajs.flatMap(T => T.pts).concat(S.lin ? [S.lin.p] : []);
+  for (const [x, y] of pts) { if (x < xa) xa = x; if (x > xb) xb = x; if (y < ya) ya = y; if (y > yb) yb = y; }
+  const px = (xb - xa) * 0.06 || 0.1, py = (yb - ya) * 0.06 || 0.1;
+  S.view = { xmin: xa - px, xmax: xb + px, ymin: ya - py, ymax: yb + py };
+  writeView(S.view); drawPhase();
+});
+$("resetViewBtn").addEventListener("click", () => { S.view = { ...S.homeView }; writeView(S.view); drawPhase(); });
+
+$("phaseSvg").addEventListener("click", e => {
+  const svg = $("phaseSvg"), F = S.frame; if (!F) return;
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+  if (q.x < F.m.l || q.x > F.m.l + F.pw || q.y < F.m.t || q.y > F.m.t + F.ph) return;
+  const x = F.ix(q.x), y = F.iy(q.y);
+  const span = Math.max(S.view.xmax - S.view.xmin, S.view.ymax - S.view.ymin);
+  const dec = Math.max(0, 3 - Math.floor(Math.log10(span)));
+  $("x0in").value = x.toFixed(dec); $("y0in").value = y.toFixed(dec);
+  if ($("chkClick").checked) addTrajectory(+x.toFixed(dec), +y.toFixed(dec));
+});
+
+/* ============ 3. Serie de la variedad estable (Ej. 8) ============ */
+// y = h(u) = Σ a_k u^k,  u = x + 1.  Invariancia: h'(u)·(u − 1 + e^{−h}) + h = 0.
+const NMAX = 15;
+const coef = (() => {
+  const a = new Array(NMAX + 1).fill(0); a[1] = 2;
+  const gSeries = n => {
+    const w = a.slice(0, n + 1).map(c => -c), E = new Array(n + 1).fill(0); E[0] = 1;
+    for (let m = 1; m <= n; m++) { let s = 0; for (let j = 1; j <= m; j++) s += j * w[j] * E[m - j]; E[m] = s / m; }
+    const g = E.slice(); g[0] -= 1; g[1] += 1; return g;   // g = u − 1 + e^{−h}
+  };
+  for (let n = 2; n <= NMAX; n++) {
+    a[n] = 0; const g = gSeries(n);
+    let S0 = a[n]; for (let k = 1; k <= n; k++) S0 += k * a[k] * g[n + 1 - k];
+    a[n] = S0 / (n + 1);                                  // el residuo es S0 − (n+1)·a_n
+  }
+  return a;
+})();
+const poly = (N, u) => { let s = 0; for (let k = N; k >= 1; k--) s = (s + coef[k]) * u; return s; };
+
+// variedad estable numérica (RK4 hacia atrás desde la silla ± ε v_s)
+const manifold = (() => {
+  const f = (x, y) => [x + Math.exp(-y), -y];
+  const vs = [1 / Math.sqrt(5), 2 / Math.sqrt(5)], eps = 1e-6, h = -0.002;
+  const branches = [];
+  for (const sg of [1, -1]) {
+    let x = -1 + sg * eps * vs[0], y = sg * eps * vs[1];
+    const pts = [[-1, 0], [x, y]];
+    for (let i = 0; i < 40000; i++) {
+      const k1 = f(x, y), k2 = f(x + h / 2 * k1[0], y + h / 2 * k1[1]), k3 = f(x + h / 2 * k2[0], y + h / 2 * k2[1]), k4 = f(x + h * k3[0], y + h * k3[1]);
+      x += h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]); y += h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+      if (!isFinite(x) || !isFinite(y) || Math.abs(y) > 30 || x < -30) break;
+      pts.push([x, y]);
+    }
+    branches.push(sg > 0 ? pts : pts.reverse());
+  }
+  return branches[1].concat(branches[0].slice(1));
+})();
+
+const WIDE = { xmin: -4, xmax: 1.5, ymin: -3, ymax: 6 };
+function polyPts(N, view) {
+  const pts = [], n = 700, ext = view.ymax - view.ymin;
+  for (let i = 0; i <= n; i++) {
+    const x = view.xmin + (view.xmax - view.xmin) * i / n;
+    let y = poly(N, x + 1);
+    y = Math.max(view.ymin - ext, Math.min(view.ymax + ext, y));
+    pts.push([x, y]);
+  }
+  return pts;
+}
+function drawPolyPlot(svgId, view, N, clip, opts = {}) {
+  const F = makeFrame(360, 320, view, { l: 44, r: 16, t: 10, b: 34 });
+  let s = axesSVG(F, clip);
+  s += `<g clip-path="url(#${clip})">`;
+  s += `<line x1="${F.m.l}" x2="${F.m.l + F.pw}" y1="${F.sy(0)}" y2="${F.sy(0)}" stroke="${C.stable}" stroke-width="1.6" opacity="0.7"/>`;
+  if (opts.radius) for (const u of [-1, 1]) s += `<line x1="${F.sx(u - 1)}" x2="${F.sx(u - 1)}" y1="${F.m.t}" y2="${F.m.t + F.ph}" stroke="${C.fp}" stroke-dasharray="4 4" stroke-width="1.2"/>`;
+  if ($("chkLower").checked) for (let k = 1; k < N; k++)
+    s += `<path d="${pathFrom(F, polyPts(k, view))}" fill="none" stroke="${C.lower}" stroke-width="1.3"/>`;
+  s += `<path d="${pathFrom(F, manifold)}" fill="none" stroke="${C.ink}" stroke-width="2.4"/>`;
+  s += `<path d="${pathFrom(F, polyPts(N, view))}" fill="none" stroke="${C.unstable}" stroke-width="2.2" stroke-dasharray="7 4"/>`;
+  s += `<circle cx="${F.sx(-1)}" cy="${F.sy(0)}" r="4.5" fill="${C.fp}" stroke="#fff" stroke-width="1.2"/>`;
+  s += `</g>` + frameBorder(F);
+  $(svgId).innerHTML = s;
+}
+const supTxt = n => String(n).split("").map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹"[+c]).join("");
+function drawPoly() {
+  const N = +$("Nslider").value, w = +$("Wslider").value;
+  $("Nread").textContent = N; $("Wread").textContent = w.toFixed(2);
+  const near = { xmin: -1 - w, xmax: -1 + w, ymin: -3 * w, ymax: 3 * w + 1.4 * w * w };
+  drawPolyPlot("nearSvg", near, N, "clipNear");
+  drawPolyPlot("wideSvg", WIDE, N, "clipWide", { radius: $("chkRadius").checked });
+
+  const err = view => {
+    let m = 0;
+    for (const [x, y] of manifold) {
+      if (x < view.xmin || x > view.xmax || y < view.ymin || y > view.ymax) continue;
+      m = Math.max(m, Math.abs(poly(N, x + 1) - y));
+    }
+    return m;
+  };
+  let terms = [];
+  for (let k = 1; k <= N; k++) terms.push(`${k === 1 ? "" : "+ "}${coef[k].toFixed(4)}·u${k === 1 ? "" : supTxt(k)}`);
+  let lines = [];
+  for (let i = 0; i < terms.length; i += 4) lines.push(terms.slice(i, i + 4).join(" "));
+  const t = `y ≈ ${lines.join("\n    ")}\n\n` +
+    `a₁ = 2 (autovector estable (1, 2)),  a₂ = 4/3 ≈ 1.3333,  a₃ = 10/9 ≈ 1.1111\n` +
+    `error máx. |y_N − y_num| en el zoom (|u| ≤ ${w.toFixed(2)}):   ${err(near).toExponential(2)}\n` +
+    `error máx. |y_N − y_num| en la ventana amplia:          ${err(WIDE).toExponential(2)}`;
+  $("polyStatus").textContent = t;
+}
+["Nslider", "Wslider"].forEach(id => $(id).addEventListener("input", drawPoly));
+["chkLower", "chkRadius"].forEach(id => $(id).addEventListener("change", drawPoly));
+
+/* ---------- inicio ---------- */
+loadPreset("ej2");
+drawPoly();
+})();
+</script>
+</body>
+</html>
